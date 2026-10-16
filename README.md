@@ -1,5 +1,5 @@
 <img width="1366" height="603" alt="Screenshot (4)" src="https://github.com/user-attachments/assets/36de532a-264d-409f-8575-bec3bc0a6bef" />
-# Ledgerly — Personal Finance & Spending Analytics
+# PF & SA — Personal Finance & Spending Analytics
 
 A Flask application for private, database-backed income and expense tracking. The initial implementation includes account registration and password reset tokens, owner-scoped transaction CRUD and CSV export, user budgets, date-filtered personal dashboards/reports, administrator-managed categories and reasons, account status management, audit events, and privacy-suppressed aggregate age-band analytics for administrators and the community.
 
