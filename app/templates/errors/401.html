@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% from "macros.html" import empty_state %}{% block title %}Sign in required{% endblock %}{% block content %}{{ empty_state('Sign in required', 'Please sign in to continue.', url_for('auth.login'), 'Sign in') }}{% endblock %}

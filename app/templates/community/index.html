@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Community insights{% endblock %}
+{% block content %}
+<header class="page-header">
+  <div>
+    <div class="eyebrow">COMMUNITY · AGGREGATED</div>
+    <h1>Community insights</h1>
+    <p>Explore shared financial patterns without exposing individual records.</p>
+  </div>
+</header>
+
+<form id="community-filters" class="panel row g-3 align-items-end mb-4"
+      data-endpoint="{{ url_for('community.data') }}">
+  <div class="col-12 col-md-4 col-xl-3">
+    <label class="form-label" for="community-period">Reporting period</label>
+    <select class="form-select" name="period" id="community-period">
+      <option value="this_month" {% if filters.period == 'this_month' %}selected{% endif %}>This month</option>
+      <option value="last_month" {% if filters.period == 'last_month' %}selected{% endif %}>Last month</option>
+      <option value="last_3_months" {% if filters.period == 'last_3_months' %}selected{% endif %}>Last 3 months</option>
+      <option value="last_6_months" {% if filters.period == 'last_6_months' %}selected{% endif %}>Last 6 months</option>
+      <option value="this_year" {% if filters.period == 'this_year' %}selected{% endif %}>This year</option>
+      <option value="last_year" {% if filters.period == 'last_year' %}selected{% endif %}>Last year</option>
+      <option value="custom" {% if filters.period == 'custom' %}selected{% endif %}>Custom range</option>
+    </select>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2 custom-community-date">
+    <label class="form-label" for="community-start">From</label>
+    <input class="form-control" type="date" name="start" id="community-start"
+           value="{{ filters.start.isoformat() }}" max="{{ today.isoformat() }}">
+  </div>
+  <div class="col-6 col-md-4 col-xl-2 custom-community-date">
+    <label class="form-label" for="community-end">To</label>
+    <input class="form-control" type="date" name="end" id="community-end"
+           value="{{ filters.end.isoformat() }}" max="{{ today.isoformat() }}">
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <label class="form-label" for="community-interval">Trend interval</label>
+    <select class="form-select" name="interval" id="community-interval">
+      <option value="monthly" {% if filters.interval == 'monthly' %}selected{% endif %}>Monthly</option>
+      <option value="yearly" {% if filters.interval == 'yearly' %}selected{% endif %}>Yearly</option>
+    </select>
+  </div>
+  <div class="col-6 col-md-4 col-xl-2">
+    <label class="form-label" for="community-currency">Currency</label>
+    <select class="form-select" name="currency" id="community-currency">
+      {% for currency in currencies %}
+      <option value="{{ currency }}" {% if filters.currency == currency %}selected{% endif %}>{{ currency }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-12 col-md-4 col-xl-1 d-flex gap-2">
+    <button class="btn btn-primary flex-grow-1" type="submit">Apply</button>
+  </div>
+  <div class="col-12 d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <p class="small text-secondary mb-0">Currency values are not converted. Age comparisons use adults with a recorded date of birth.</p>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('community.index') }}">Reset filters</a>
+  </div>
+</form>
+
+<div id="community-loading" class="alert alert-info" role="status" aria-live="polite">Loading aggregated community data…</div>
+<div id="community-error" class="alert alert-warning d-none" role="alert">Community insights could not be loaded. Please try again.</div>
+<div id="community-eligibility" class="small text-secondary mb-3" aria-live="polite"></div>
+
+<section aria-labelledby="community-overview-title" class="mb-4">
+  <h2 class="h5 mb-3" id="community-overview-title">Community financial overview</h2>
+  <div class="row g-3">
+    <div class="col-6 col-xl-3"><article class="metric-card"><div class="metric-label">Recorded community income</div><div class="metric-value" id="community-income">—</div><p class="small text-secondary mb-0">Eligible contributions in the selected period</p></article></div>
+    <div class="col-6 col-xl-3"><article class="metric-card"><div class="metric-label">Recorded community expenses</div><div class="metric-value text-danger" id="community-expenses">—</div><p class="small text-secondary mb-0">Eligible contributions in the selected period</p></article></div>
+    <div class="col-6 col-xl-3"><article class="metric-card"><div class="metric-label">Recorded difference</div><div class="metric-value" id="community-difference">—</div><p class="small text-secondary mb-0">Recorded income minus recorded expenses; not a bank balance</p></article></div>
+    <div class="col-6 col-xl-3"><article class="metric-card"><div class="metric-label">Spending-to-income</div><div class="metric-value" id="community-ratio">—</div><p class="small text-secondary mb-0" id="community-ratio-note">Only meaningful when recorded income is positive</p></article></div>
+  </div>
+  <p class="small text-secondary mt-2 mb-0" id="overview-message" role="status"></p>
+</section>
+
+<div class="row g-4">
+  <div class="col-12 col-xl-6">
+    <section class="panel h-100" aria-labelledby="community-category-title">
+      <h2 class="h5" id="community-category-title">Where Does Our Community Spend the Most?</h2>
+      <p class="small text-secondary">Recorded expenses by category and share of eligible community spending.</p>
+      <div class="chart-container"><canvas id="community-category-chart" role="img" aria-label="Community spending by category"></canvas></div>
+      <div class="empty-state d-none" id="community-category-empty" role="status"></div>
+    </section>
+  </div>
+  <div class="col-12 col-xl-6">
+    <section class="panel h-100" aria-labelledby="community-age-title">
+      <h2 class="h5" id="community-age-title">Spending Patterns Across Age Groups</h2>
+      <p class="small text-secondary">Average recorded expenses per eligible contributor in the selected period.</p>
+      <div class="chart-container"><canvas id="community-age-chart" role="img" aria-label="Average expenses and income per contributor by age group"></canvas></div>
+      <p class="small text-secondary mb-0" id="age-suppression-note" role="status"></p>
+      <div class="empty-state d-none" id="community-age-empty" role="status"></div>
+      <p class="small fw-semibold mt-3 mb-0" id="age-spending-leaders"></p>
+    </section>
+  </div>
+  <div class="col-12 col-xl-6">
+    <section class="panel h-100" aria-labelledby="community-income-age-title">
+      <h2 class="h5" id="community-income-age-title">Income Across Age Groups</h2>
+      <p class="small text-secondary">Average recorded income per eligible contributor; contributors with no income count as zero.</p>
+      <div class="chart-container"><canvas id="community-income-age-chart" role="img" aria-label="Average recorded income per contributor by age group"></canvas></div>
+      <div class="empty-state d-none" id="community-income-age-empty" role="status"></div>
+      <p class="small fw-semibold mt-3 mb-0" id="age-income-leaders"></p>
+    </section>
+  </div>
+  <div class="col-12 col-xl-6">
+    <section class="panel h-100" aria-labelledby="community-trend-title">
+      <h2 class="h5" id="community-trend-title">Community Income vs Expenses</h2>
+      <p class="small text-secondary" id="community-trend-description">Monthly totals for eligible contributors.</p>
+      <div class="chart-container"><canvas id="community-trend-chart" role="img" aria-label="Community income and expenses over time"></canvas></div>
+      <div class="empty-state d-none" id="community-trend-empty" role="status"></div>
+    </section>
+  </div>
+  <div class="col-12">
+    <section class="panel" aria-labelledby="community-person-title">
+      <h2 class="h5" id="community-person-title">Average Spending per Person by Age Group</h2>
+      <p class="small text-secondary">Each eligible contributor is counted once in the denominator, regardless of transaction count.</p>
+      <div class="chart-container"><canvas id="community-person-chart" role="img" aria-label="Average spending per eligible contributor by age group"></canvas></div>
+      <div class="empty-state d-none" id="community-person-empty" role="status"></div>
+    </section>
+  </div>
+  <div class="col-12">
+    <section class="panel" aria-labelledby="community-category-trend-title">
+      <h2 class="h5" id="community-category-trend-title">How Community Spending Changes Over Time</h2>
+      <p class="small text-secondary">Monthly category totals. Lower-ranked safe categories may be grouped as Other.</p>
+      <div class="chart-container"><canvas id="community-category-trend-chart" role="img" aria-label="Monthly stacked community spending by category"></canvas></div>
+      <div class="empty-state d-none" id="community-category-trend-empty" role="status"></div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/community-analytics.js') }}" defer></script>
+{% endblock %}

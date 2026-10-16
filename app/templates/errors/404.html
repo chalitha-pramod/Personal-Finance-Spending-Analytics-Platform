@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% from "macros.html" import empty_state %}{% block title %}Not found{% endblock %}{% block content %}{{ empty_state('Page not found', 'The requested page or record could not be found.', url_for('dashboard.index'), 'Return to dashboard') }}{% endblock %}

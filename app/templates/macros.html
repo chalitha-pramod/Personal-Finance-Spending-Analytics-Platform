@@ -1,0 +1,31 @@
+{% macro render_field(field, class_name=none) %}
+{% set control_class = class_name or ('form-select' if field.type == 'SelectField' else 'form-control') %}
+<div class="mb-3">
+  {{ field.label(class="form-label") }}
+  {{ field(class=control_class ~ (' is-invalid' if field.errors else ''), aria_invalid='true' if field.errors else 'false', aria_describedby=(field.id ~ '-errors') if field.errors else none, **kwargs) }}
+  {% if field.errors %}
+  <div class="invalid-feedback d-block" id="{{ field.id }}-errors" role="alert">
+    {% for error in field.errors %}<div>{{ error }}</div>{% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% macro page_header(title, eyebrow='', description='') %}
+<header class="page-header">
+  <div>
+    {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+    <h1>{{ title }}</h1>
+    {% if description %}<p>{{ description }}</p>{% endif %}
+  </div>
+  {% if caller is defined %}<div class="page-header-actions">{{ caller() }}</div>{% endif %}
+</header>
+{% endmacro %}
+
+{% macro empty_state(title, message, action_url=none, action_label=none) %}
+<div class="empty-state">
+  <h2 class="h5">{{ title }}</h2>
+  <p>{{ message }}</p>
+  {% if action_url and action_label %}<a class="btn btn-primary" href="{{ action_url }}">{{ action_label }}</a>{% endif %}
+</div>
+{% endmacro %}

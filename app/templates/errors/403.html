@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% from "macros.html" import empty_state %}{% block title %}Access denied{% endblock %}{% block content %}{{ empty_state('Access denied', 'You do not have permission to access this page.', url_for('dashboard.index'), 'Return to dashboard') }}{% endblock %}

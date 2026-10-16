@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% from "macros.html" import empty_state %}{% block title %}Unexpected error{% endblock %}{% block content %}{{ empty_state('Something went wrong', 'Please try again later. The incident has been logged.', url_for('auth.login'), 'Return to sign in') }}{% endblock %}

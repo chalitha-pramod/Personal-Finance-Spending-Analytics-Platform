@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% from "macros.html" import render_field %}
+{% block title %}Create account{% endblock %}
+{% block content %}<div class="auth-card card mx-auto"><div class="card-body"><div class="eyebrow">GET STARTED</div><h1 class="h3 mb-2">Create your account</h1><p class="text-secondary mb-4">Set up your private finance workspace.</p>
+<form method="post">{{ form.hidden_tag() }}{{ render_field(form.name) }}{{ render_field(form.email, autocomplete="email") }}{{ render_field(form.password, autocomplete="new-password") }}{{ render_field(form.confirm_password, autocomplete="new-password") }}{{ render_field(form.date_of_birth) }}{{ render_field(form.preferred_currency) }}{{ form.submit(class="btn btn-primary w-100") }}</form><p class="text-center text-secondary small mt-3 mb-0">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></p></div></div>{% endblock %}
